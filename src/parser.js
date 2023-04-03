@@ -1,4 +1,4 @@
-const filenamify = require('filenamify');
+const filenamify = require('filenamify/browser');
 const bodyDecoder = require('./decoder');
 const linkReplacer = require('./link-replacer');
 
