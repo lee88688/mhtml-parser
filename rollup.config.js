@@ -1,6 +1,7 @@
 const { nodeResolve } = require('@rollup/plugin-node-resolve')
 const commonjs = require('@rollup/plugin-commonjs')
 const json = require('@rollup/plugin-json')
+const inject = require('@rollup/plugin-inject')
 
 module.exports =  {
   input: './src/parser.js',
@@ -8,5 +9,5 @@ module.exports =  {
     file: './dist/bundle.js',
     format: 'cjs',
   },
-  plugins: [nodeResolve(), commonjs(), json()]
+  plugins: [commonjs(), nodeResolve({ preferBuiltins: false }), json(), inject({ Buffer: ['buffer', 'Buffer'] })],
 }
