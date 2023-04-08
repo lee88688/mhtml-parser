@@ -16,6 +16,7 @@ module.exports = {
     'no-cond-assign': 0,
     'no-bitwise': 0,
     'no-plusplus': 0,
-    'comma-dangle': 0 // node 6 compat
+    'comma-dangle': 0, // node 6 compat
+    'linebreak-style': 0,
   }
 };

@@ -1,4 +1,4 @@
-const { URL } = require('url'); // url isn't global in Node < 8
+// const { URL } = require('url'); // url isn't global in Node < 8
 
 const MAX_EXTRA_SPACE = 1024 * 1024 * 5; // 5mb
 const attrs = {

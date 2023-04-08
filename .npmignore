@@ -1,4 +1,9 @@
 demos/
 out/
 *.test.*
+.github/
+src/
+test.js
+rollup.config.js
+PULL_REQUEST_TEMPLATE.md
 

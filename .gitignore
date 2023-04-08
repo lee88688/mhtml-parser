@@ -63,3 +63,5 @@ typings/
 out/*
 .DS_Store
 coverage/
+
+dist/

@@ -1,6 +1,6 @@
 const cheerio = require('cheerio');
 const csstree = require('css-tree');
-const { URL } = require('url');
+// const { URL } = require('url');
 const Generator = require('./dom-link-renamer');
 
 let generator;

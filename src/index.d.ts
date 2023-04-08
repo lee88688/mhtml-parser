@@ -8,14 +8,14 @@ declare module 'fast-mhtml' {
     type: string;
     filename: string;
   }
-  export class Parser {
+  export default class Parser {
     constructor(config?: IParserConfig);
     parse(contents: Buffer | string): this;
     rewrite(): this;
     spit(): IFileResult[];
   }
-  export class Converter {
-    static serve(port?: number): void;
-    static convert(filename: string): Promise<void>;
-  }
+  // export class Converter {
+  //   static serve(port?: number): void;
+  //   static convert(filename: string): Promise<void>;
+  // }
 }
