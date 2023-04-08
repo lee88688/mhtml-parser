@@ -1,8 +1,8 @@
 {
-  "name": "fast-mhtml",
-  "version": "2.1.0",
+  "name": "@monsterlee/fast-mhtml",
+  "version": "2.2.0",
   "description": "Parses mhtml files",
-  "main": "src/index.js",
+  "main": "dist/index.js",
   "types": "src/index.d.ts",
   "scripts": {
     "test": "nyc --reporter=html mocha src/*.test.js",
@@ -21,7 +21,7 @@
     "mhtml",
     "files"
   ],
-  "author": "benji@testim.io",
+  "author": "benji@testim.io,lee2py@gmail.com",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/testimio/mhtml-parser/issues"

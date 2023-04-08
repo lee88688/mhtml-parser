@@ -1,6 +1,6 @@
 const fs = require('fs')
 const path = require('path')
-const Parser = require('./dist/bundle')
+const Parser = require('./dist/index')
 
 const parser = new Parser()
 const file = fs.readFileSync('./demos/mdn.mhtml', 'utf8')

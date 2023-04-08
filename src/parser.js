@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-unresolved
 const filenamify = require('filenamify/browser');
 const bodyDecoder = require('./decoder');
 const linkReplacer = require('./link-replacer');
