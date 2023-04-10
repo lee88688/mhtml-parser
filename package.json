@@ -3,7 +3,7 @@
   "version": "2.2.0",
   "description": "Parses mhtml files",
   "main": "dist/index.js",
-  "types": "src/index.d.ts",
+  "types": "index.d.ts",
   "scripts": {
     "test": "nyc --reporter=html mocha src/*.test.js",
     "lint": "eslint src/*.js",

@@ -3,7 +3,7 @@ const commonjs = require('@rollup/plugin-commonjs')
 const json = require('@rollup/plugin-json')
 const inject = require('@rollup/plugin-inject')
 
-module.exports =  {
+module.exports = {
   input: './src/parser.js',
   output: {
     file: './dist/index.js',
