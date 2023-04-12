@@ -78,9 +78,16 @@ module.exports = class Parser {
     const entries = this.parts
       .filter((part) => part.location)
       .map((part) => [part.location.trim(), part]);
-    const partMap = new Map(entries);
-    for (const part of this.parts.filter((x) => x.id)) {
-      partMap.set(`cid:${part.id.trim()}`, part);
+    const partMap = new Map();
+    /**
+     * some MHTML file may have same location with different id.
+     * generally leaning forward may be more important.
+     * so this action may ignore same location following.
+     */
+    for (const [location, part] of entries) {
+      if (!partMap.has(location)) partMap.set(location, part);
+      const id = `cid:${part.id}`;
+      if (part.id && !partMap.has(id)) partMap.set(id, part);
     }
     const rewriteMap = new Map();
     const urlQueue = []; // record recursive rewrite url, void repeated rewrite
@@ -88,21 +95,30 @@ module.exports = class Parser {
       get: (target, property) => {
         if (property === 'get') {
           return (key) => {
+            if (!key) return;
             if (urlQueue.includes(key)) return;
 
             const value = target.get(key);
             if (value !== undefined) return value;
 
-            // console.log('key', key);
-            urlQueue.push(key);
             const part = partMap.get(key);
             if (!part) return;
+
+            // console.log('key', key);
+            urlQueue.push(key);
+
             const replacer = getReplacer(part.type);
             part.body = replacer(part.body, proxyRewriteMap, part.location);
             const url = this.rewriteFn(part.location, part);
             part.rewriteLocation = url;
+
             target.set(part.location, url);
-            if (part.id) target.set(`cid:${part.id}`, url);
+            const id = `cid:${part.id}`
+            // use cid to reference resource
+            if (key === id && part.location && target.get(part.location)) target.set(part.location, url);
+            // use location to reference resource
+            else if (key !== id) target.set(id, url);
+
             urlQueue.pop();
 
             return url;
