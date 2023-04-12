@@ -100,6 +100,7 @@ module.exports = class Parser {
             const replacer = getReplacer(part.type);
             part.body = replacer(part.body, proxyRewriteMap, part.location);
             const url = this.rewriteFn(part.location, part);
+            part.rewriteLocation = url;
             target.set(part.location, url);
             if (part.id) target.set(`cid:${part.id}`, url);
             urlQueue.pop();
@@ -121,7 +122,7 @@ module.exports = class Parser {
 
   spit() {
     return this.parts.map((part) => ({
-      filename: this.rewriteFn(part.location || part.id),
+      filename: part.rewriteLocation,
       content: this.gotString ? part.body.toString() : part.body,
       type: part.type,
     }));
