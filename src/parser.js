@@ -8,7 +8,7 @@ const LF = '\n'.charCodeAt(0);
 module.exports = class Parser {
   constructor(config = {}) {
     this.maxFileSize = config.maxFileSize || 50 * 1000 * 1000;
-    this.rewriteFn = config.rewriteFn || filenamify;
+    this.rewriteFn = config.rewriteFn || ((name) => filenamify(name));
     this.gotString = false;
   }
 
@@ -68,20 +68,53 @@ module.exports = class Parser {
   }
 
   rewrite() {
+    const replacerMap = {
+      'text/html': linkReplacer.html,
+      'text/css': linkReplacer.css,
+      'image/svg+xml': linkReplacer.svg,
+    };
+    const getReplacer = (type) => replacerMap[type] || ((body) => body);
+
     const entries = this.parts
       .filter((part) => part.location)
-      .map((part) => [part.location.trim(), this.rewriteFn(part.location).trim()]);
-    const rewriteMap = new Map(entries);
+      .map((part) => [part.location.trim(), part]);
+    const partMap = new Map(entries);
     for (const part of this.parts.filter((x) => x.id)) {
-      rewriteMap.set(`cid:${part.id}`, this.rewriteFn(part.location || part.id.trim()));
+      partMap.set(`cid:${part.id.trim()}`, part);
     }
+    const rewriteMap = new Map();
+    const urlQueue = []; // record recursive rewrite url, void repeated rewrite
+    const proxyRewriteMap = new Proxy(rewriteMap, {
+      get: (target, property) => {
+        if (property === 'get') {
+          return (key) => {
+            if (urlQueue.includes(key)) return;
+
+            const value = target.get(key);
+            if (value !== undefined) return value;
+
+            // console.log('key', key);
+            urlQueue.push(key);
+            const part = partMap.get(key);
+            if (!part) return;
+            const replacer = getReplacer(part.type);
+            part.body = replacer(part.body, proxyRewriteMap, part.location);
+            const url = this.rewriteFn(part.location, part);
+            target.set(part.location, url);
+            if (part.id) target.set(`cid:${part.id}`, url);
+            urlQueue.pop();
+
+            return url;
+          };
+        }
+        const value = target[property];
+        if (Object.prototype.toString.call(value) === '[object Function]') return value.bind(target);
+        return value;
+      }
+    });
+
     for (const part of this.parts) {
-      const replacer = ({
-        'text/html': linkReplacer.html,
-        'text/css': linkReplacer.css,
-        'image/svg+xml': linkReplacer.svg,
-      })[part.type] || ((body) => body);
-      part.body = replacer(part.body, rewriteMap, part.location);
+      proxyRewriteMap.get(part.location);
     }
     return this;
   }
