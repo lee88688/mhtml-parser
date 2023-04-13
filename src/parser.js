@@ -8,7 +8,7 @@ const LF = '\n'.charCodeAt(0);
 module.exports = class Parser {
   constructor(config = {}) {
     this.maxFileSize = config.maxFileSize || 50 * 1000 * 1000;
-    this.rewriteFn = config.rewriteFn || filenamify;
+    this.rewriteFn = config.rewriteFn || ((name) => filenamify(name));
     this.gotString = false;
   }
 
@@ -68,27 +68,77 @@ module.exports = class Parser {
   }
 
   rewrite() {
+    const replacerMap = {
+      'text/html': linkReplacer.html,
+      'text/css': linkReplacer.css,
+      'image/svg+xml': linkReplacer.svg,
+    };
+    const getReplacer = (type) => replacerMap[type] || ((body) => body);
+
     const entries = this.parts
       .filter((part) => part.location)
-      .map((part) => [part.location.trim(), this.rewriteFn(part.location).trim()]);
-    const rewriteMap = new Map(entries);
-    for (const part of this.parts.filter((x) => x.id)) {
-      rewriteMap.set(`cid:${part.id}`, this.rewriteFn(part.location || part.id.trim()));
+      .map((part) => [part.location.trim(), part]);
+    const partMap = new Map();
+    /**
+     * some MHTML file may have same location with different id.
+     * generally leaning forward may be more important.
+     * so this action may ignore same location following.
+     */
+    for (const [location, part] of entries) {
+      if (!partMap.has(location)) partMap.set(location, part);
+      const id = `cid:${part.id}`;
+      if (part.id && !partMap.has(id)) partMap.set(id, part);
     }
+    const rewriteMap = new Map();
+    const urlQueue = []; // record recursive rewrite url, void repeated rewrite
+    const proxyRewriteMap = new Proxy(rewriteMap, {
+      get: (target, property) => {
+        if (property === 'get') {
+          return (key) => {
+            if (!key) return;
+            if (urlQueue.includes(key)) return;
+
+            const value = target.get(key);
+            if (value !== undefined) return value;
+
+            const part = partMap.get(key);
+            if (!part) return;
+
+            // console.log('key', key);
+            urlQueue.push(key);
+
+            const replacer = getReplacer(part.type);
+            part.body = replacer(part.body, proxyRewriteMap, part.location);
+            const url = this.rewriteFn(part.location, part);
+            part.rewriteLocation = url;
+
+            target.set(part.location, url);
+            const id = `cid:${part.id}`
+            // use cid to reference resource
+            if (key === id && part.location && target.get(part.location)) target.set(part.location, url);
+            // use location to reference resource
+            else if (key !== id) target.set(id, url);
+
+            urlQueue.pop();
+
+            return url;
+          };
+        }
+        const value = target[property];
+        if (Object.prototype.toString.call(value) === '[object Function]') return value.bind(target);
+        return value;
+      }
+    });
+
     for (const part of this.parts) {
-      const replacer = ({
-        'text/html': linkReplacer.html,
-        'text/css': linkReplacer.css,
-        'image/svg+xml': linkReplacer.svg,
-      })[part.type] || ((body) => body);
-      part.body = replacer(part.body, rewriteMap, part.location);
+      proxyRewriteMap.get(part.location);
     }
     return this;
   }
 
   spit() {
     return this.parts.map((part) => ({
-      filename: this.rewriteFn(part.location || part.id),
+      filename: part.rewriteLocation,
       content: this.gotString ? part.body.toString() : part.body,
       type: part.type,
     }));

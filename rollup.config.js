@@ -7,7 +7,7 @@ module.exports = {
   input: './src/parser.js',
   output: {
     file: './dist/index.js',
-    format: 'cjs',
+    format: 'esm',
   },
   plugins: [commonjs(), nodeResolve({ preferBuiltins: false }), json(), inject({ Buffer: ['buffer', 'Buffer'] })],
 }

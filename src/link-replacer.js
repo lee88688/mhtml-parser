@@ -3,7 +3,7 @@ const csstree = require('css-tree');
 // const { URL } = require('url');
 const Generator = require('./dom-link-renamer');
 
-let generator;
+// let generator;
 
 const CSS_REPLACE_RE = /url\(['"]?(?!["']?data)(.+?)['"]?\)/g;
 
@@ -19,12 +19,16 @@ module.exports = {
     if (gotString) {
       domBuffer = Buffer.from(domBuffer);
     }
-    if (generator) {
-      generator.reset(domBuffer, resourcesMap, baseUrl);
-    } else {
-      generator = new Generator(domBuffer, resourcesMap, baseUrl);
-      generator.cssProcessor = module.exports.css;
-    }
+    // if (generator) {
+    //   generator.reset(domBuffer, resourcesMap, baseUrl);
+    // } else {
+    //   generator = new Generator(domBuffer, resourcesMap, baseUrl);
+    //   generator.cssProcessor = module.exports.css;
+    // }
+
+    // new generator instead of resusing because of function's recursive calls
+    const generator = new Generator(domBuffer, resourcesMap, baseUrl);
+    generator.cssProcessor = module.exports.css;
     generator.parse();
     if (gotString) {
       return generator.result().toString();
