@@ -18,5 +18,6 @@ module.exports = {
     'no-plusplus': 0,
     'comma-dangle': 0, // node 6 compat
     'linebreak-style': 0,
+    'consistent-return': 0
   }
 };

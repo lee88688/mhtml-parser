@@ -113,9 +113,10 @@ module.exports = class Parser {
             part.rewriteLocation = url;
 
             target.set(part.location, url);
-            const id = `cid:${part.id}`
+            const id = `cid:${part.id}`;
             // use cid to reference resource
-            if (key === id && part.location && target.get(part.location)) target.set(part.location, url);
+            // eslint-disable-next-line max-len
+            if (key === id && part.location && target.get(part.location))target.set(part.location, url);
             // use location to reference resource
             else if (key !== id) target.set(id, url);
 
